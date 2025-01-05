@@ -8,6 +8,7 @@ export default function CanvasWrapper({
   return (
     <Canvas
       style={{ width: "100%", height: "100vh", backgroundColor: "#dddddd" }}
+      camera={{ position: [0, 2, 7] }}
     >
       {children}
     </Canvas>

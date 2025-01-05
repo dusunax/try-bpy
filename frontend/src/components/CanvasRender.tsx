@@ -22,7 +22,12 @@ export default function CanvasRender({ itemData }: { itemData: ItemData }) {
       />
 
       <Floor />
-      <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+      <OrbitControls
+        minPolarAngle={0}
+        maxPolarAngle={Math.PI / 2}
+        minDistance={2}
+        maxDistance={13}
+      />
       <Environment preset="sunset" />
     </>
   );
