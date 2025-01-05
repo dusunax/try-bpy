@@ -1,32 +1,29 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
+import { OrbitControls, Environment, Html } from "@react-three/drei";
 import Floor from "./Floor";
-import Models from "./Model";
+Html;
+import Scenes from "./Scenes";
 import AnimateButtons from "./AnimateButtons";
-import { MovingObject } from "../interface/ObjectSpec";
 import { ItemData } from "../mocks/ItemData";
+import useCanvasRender from "../hooks/useCanvasRender";
 
-export default function CanvasRender({itemData}: {itemData: ItemData}) {
+export default function CanvasRender({ itemData }: { itemData: ItemData }) {
   const objects = itemData.objects;
-  const movingObjects = objects.filter((object) => object instanceof MovingObject);
-  const moveToggle = (movingObject: MovingObject) => movingObject.move();
+  const { scenes, handleToggle, animatingObjects } = useCanvasRender(objects);
 
   return (
-    <div style={{ width: "100%", height: "100vh", backgroundColor: "#dddddd" }}>
-      <Canvas>
-        <ambientLight intensity={0.2} />
-        <pointLight position={[10, 10, 10]} />
+    <>
+      <ambientLight intensity={0.2} />
+      <pointLight position={[10, 10, 10]} />
 
-        <Models objects={objects} />
-        <AnimateButtons movingObjects={movingObjects} moveToggle={moveToggle} />
+      <Scenes scenes={scenes} />
+      <AnimateButtons
+        animatingObjects={animatingObjects}
+        handleToggle={handleToggle}
+      />
 
-        <Floor />
-        <OrbitControls 
-          minPolarAngle={0}
-          maxPolarAngle={Math.PI / 2}
-          />
-        <Environment preset="sunset" />
-      </Canvas>
-    </div>
+      <Floor />
+      <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+      <Environment preset="sunset" />
+    </>
   );
-};
+}

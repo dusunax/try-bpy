@@ -1,12 +1,18 @@
 import { Html } from "@react-three/drei";
-import { MovingObject } from "../interface/ObjectSpec";
+import useCanvasRender from "../hooks/useCanvasRender";
 
-export default function AnimateButtons({movingObjects, moveToggle}: {movingObjects: MovingObject[], moveToggle: (movingObject: MovingObject)=>void}){
-  return movingObjects.map((movingObject) => {
+export default function AnimateButtons({
+  animatingObjects,
+  handleToggle,
+}: {
+  animatingObjects: ReturnType<typeof useCanvasRender>["animatingObjects"];
+  handleToggle: ReturnType<typeof useCanvasRender>["handleToggle"];
+}) {
+  return animatingObjects.map((object) => {
     return (
-      <Html position={movingObject.buttonPosition} key={movingObject.id}>
+      <Html position={object.option.buttonPosition} key={object.id}>
         <button
-          onClick={() => moveToggle(movingObject)}
+          onClick={() => handleToggle(object)}
           style={{
             backgroundColor: "#00ffff55",
             padding: "10px",
@@ -17,17 +23,17 @@ export default function AnimateButtons({movingObjects, moveToggle}: {movingObjec
           }}
           type="button"
         >
-        <div
-          style={{
-            width: "3px",
-            height: "3px",
-            backgroundColor: "#00ffff",
-            borderRadius: "100%",
+          <div
+            style={{
+              width: "3px",
+              height: "3px",
+              backgroundColor: "#00ffff",
+              borderRadius: "100%",
             }}
           />
         </button>
       </Html>
-    )
-  })
+    );
+  });
 }
 

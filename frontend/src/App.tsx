@@ -1,11 +1,16 @@
 import './index.css'
-import Render from './components/CanvasRender'
-import { currentItemData } from './mocks/ItemData';
+import { currentItemData } from "./mocks/ItemData";
+import CanvasWrapper from "./components/CanvasWrapper";
+import CanvasRender from "./components/CanvasRender";
 
 function App() {
   const itemData = currentItemData;
-  
-  return (<Render itemData={itemData} />)
+
+  return (
+    <CanvasWrapper>
+      <CanvasRender itemData={itemData} />
+    </CanvasWrapper>
+  );
 }
 
 export default App
