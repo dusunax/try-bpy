@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimationAction, AnimationMixer, LoopOnce, Scene } from "three";
+import {
+  AnimationAction,
+  AnimationMixer,
+  LoopOnce,
+  Mesh,
+  MeshStandardMaterial,
+  Scene,
+  Texture,
+  TextureLoader,
+} from "three";
 import { useFrame } from "@react-three/fiber";
 import { GLTF, GLTFLoader } from "three/examples/jsm/Addons.js";
 import {
@@ -7,8 +16,46 @@ import {
   MovingObject,
   ObjectSpec,
 } from "../interface/ObjectSpec";
+import useTabSelection from "./useTabSelection";
 
-export default function useCanvasRender(objects: ObjectSpec[]) {
+interface UseCanvasRenderProps {
+  objects: ObjectSpec[];
+  selection: {
+    selectedColor: ReturnType<typeof useTabSelection>["selectedColor"];
+    selectedTexture: ReturnType<typeof useTabSelection>["selectedTexture"];
+  };
+}
+
+const DEFAULT_COLOR = "#00ffff";
+const textureCache = new Map<string, Texture>();
+
+const loadMaterial = (color: string, textures: Record<string, string>) => {
+  const diffuseTexture = textures.diffuse
+    ? textureCache.get(textures.diffuse) ||
+      new TextureLoader().load(textures.diffuse, (texture) =>
+        textureCache.set(textures.diffuse, texture)
+      )
+    : null;
+  const roughnessTexture = textures.roughness
+    ? textureCache.get(textures.roughness) ||
+      new TextureLoader().load(textures.roughness, (texture) =>
+        textureCache.set(textures.roughness, texture)
+      )
+    : null;
+
+  return new MeshStandardMaterial({
+    color,
+    map: diffuseTexture,
+    roughnessMap: roughnessTexture,
+    roughness: 1,
+    metalness: 0,
+  });
+};
+
+export default function useCanvasRender({
+  objects,
+  selection,
+}: UseCanvasRenderProps) {
   const [gltfs, setGltfs] = useState<Record<string, GLTF>>({});
   const mixers = useRef<Record<string, AnimationMixer>>({});
   const actions = useRef<Record<string, AnimationAction>>({});
@@ -16,13 +63,29 @@ export default function useCanvasRender(objects: ObjectSpec[]) {
   const scenes = useMemo(() => {
     return Object.values(gltfs).map((model) => model.scene);
   }, [gltfs]) as unknown as Scene[];
+
   const animatingObjects = useMemo(
     () =>
       objects.filter(
         (obj) => obj instanceof AnimatedObject || obj instanceof MovingObject
       ),
-    [objects]
+    [objects, selection]
   );
+
+  useEffect(() => {
+    scenes.forEach((scene) =>
+      scene.traverse((child) => {
+        if ((child as any).isMesh) {
+          const mesh = child as Mesh;
+          if (mesh.material instanceof MeshStandardMaterial) {
+            mesh.material.color.set(
+              selection.selectedColor.value || DEFAULT_COLOR
+            );
+          }
+        }
+      })
+    );
+  }, [selection.selectedColor, scenes]);
 
   useEffect(() => {
     const loader = new GLTFLoader();
@@ -32,6 +95,17 @@ export default function useCanvasRender(objects: ObjectSpec[]) {
 
       loader.load(object.file, (gltf) => {
         gltf.scene.name = object.id;
+        gltf.scene.traverse((child) => {
+          if ((child as any).isMesh) {
+            const mesh = child as Mesh;
+            const material = loadMaterial(
+              selection.selectedColor.value || DEFAULT_COLOR,
+              selection.selectedTexture.textures || {}
+            );
+            mesh.material = material;
+          }
+        });
+
         setGltfs((prev) => ({
           ...prev,
           [object.id]: gltf,

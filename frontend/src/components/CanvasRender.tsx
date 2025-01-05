@@ -5,10 +5,25 @@ import Scenes from "./Scenes";
 import AnimateButtons from "./AnimateButtons";
 import { ItemData } from "../mocks/ItemData";
 import useCanvasRender from "../hooks/useCanvasRender";
+import useTabSelection from "../hooks/useTabSelection";
 
-export default function CanvasRender({ itemData }: { itemData: ItemData }) {
+interface CanvasRenderProps {
+  itemData: ItemData;
+  selection: {
+    selectedColor: ReturnType<typeof useTabSelection>["selectedColor"];
+    selectedTexture: ReturnType<typeof useTabSelection>["selectedTexture"];
+  };
+}
+
+export default function CanvasRender({
+  itemData,
+  selection,
+}: CanvasRenderProps) {
   const objects = itemData.objects;
-  const { scenes, handleToggle, animatingObjects } = useCanvasRender(objects);
+  const { scenes, handleToggle, animatingObjects } = useCanvasRender({
+    objects,
+    selection,
+  });
 
   return (
     <>
